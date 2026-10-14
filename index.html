@@ -1,0 +1,62 @@
+<!Doctype html>
+<html lang = "en">
+
+<head>
+
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>Finance Tracker</title>
+
+    <link rel = "stylesheet" href = "base.css">
+
+</head>
+
+<body>
+
+    <nav class = "navbar">
+        <span id = "menu-icon" class = "menu-icon">&#9776;</span>
+        <h1 class = "logo">Traksta</h1>
+        <ul class = "nav-links">
+            <li><a href = "#">Home</a></li>
+            <li><a href = "#">Records</a></li>
+            <li><a href = "#">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+        <select class = "currency">
+            <option>USD</option>
+            <option>RWF</option>
+            <option>EUR</option>
+        </select>
+    </nav>
+
+    <nav class = "side-navbar">
+        <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
+        <h1 class = "side-logo">Traksta</h1></div>
+        <ul class = "side-nav-links">
+            <li><a href = "#">Home</a></li>
+            <li><a href = "#">Records</a></li>
+            <li><a href = "#">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+    </nav>
+
+</body>
+
+<script>
+    const menuIcon = document.getElementById("menu-icon");
+    const sideMenuIcon = document.getElementById("side-menu-icon");
+    const sideNavbar = document.querySelector(".side-navbar");
+
+    function openSideNavbar() {
+        sideNavbar.classList.add('open');
+    }
+
+    function closeSideNavbar() {
+        sideNavbar.classList.remove('open');
+    }
+
+    menuIcon.addEventListener("click", openSideNavbar);
+    sideMenuIcon.addEventListener("click", closeSideNavbar);
+</script>
+
+</html>
