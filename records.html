@@ -1,0 +1,234 @@
+<!Doctype html>
+<html lang = "en">
+
+<head>
+
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>Finance Tracker</title>
+
+    <link rel = "stylesheet" href = "base.css">
+    <link rel = "stylesheet" href = "records.css">
+
+</head>
+
+<body>
+
+    <nav class = "navbar">
+        <span id = "menu-icon" class = "menu-icon">&#9776;</span>
+        <h1 class = "logo">Traksta</h1>
+        <ul class = "nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "#">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+        <select class = "currency">
+            <option>USD</option>
+            <option>RWF</option>
+            <option>EUR</option>
+        </select>
+    </nav>
+
+    <nav class = "side-navbar">
+        <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
+        <h1 class = "side-logo">Traksta</h1></div>
+        <ul class = "side-nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "#">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+    </nav>
+
+
+
+    <section class = "records-section">
+        
+        <h1 class = "records-title">Records</h1>
+
+        <div class = "search">
+            <input type = "text" placeholder = "Search records..." class = "search-bar">
+            <select class = "filter">
+                <option value = "date">Date</option>
+                <option value = "amount">Amount</option>
+            </select>
+            <button class = "add-record">Add</button>
+        </div>
+        <div class = "shortcuts">
+            <button>Cents</button>
+            <button>Coffee or Tea</button>
+            <button>Repeated word</button>
+        </div>
+
+        <hr>
+
+        <table id = "records-table" class = "records-table">
+            <thead><tr>
+                <th class = "left-corner">Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th class = "right-corner">Action</th>
+            </tr></thead>
+            <tbody id = "table-body"></tbody>
+        </table>
+
+        <script>
+            let state = {
+                rows: [],
+                view: {
+                    editingId: null,
+                    editDraft: {}
+                }
+            };
+
+            function renderRecordsTable(){
+
+                const body = document.getElementById("table-body");
+                body.innerHTML = "";
+                state.rows.forEach(record => {
+
+                    if(record.active === false) return;
+
+                    if(state.view.editingId === record.id){
+                        body.appendChild(createEditRow(record));
+                    }else{
+                        body.appendChild(createReadRow(record));
+                    }
+
+                });
+
+            }
+
+            function createReadRow(record){
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.category}</td>
+                    <td>${record.description}</td>
+                    <td>${record.amount}</td>
+                    <td class = "action-btns">
+                        <button class = "btn-action btn-edit" data-id = "${record.id}">Edit</button>
+                        <button class = "btn-action btn-delete" data-id = "${record.id}">Delete</button>
+                    </td>
+                `;
+
+
+                tr.querySelector(".btn-edit").addEventListener("click", () => {
+                    state.view.editingId = record.id;
+                    state.view.editDraft = {...record};
+                    renderRecordsTable();
+                });
+
+                tr.querySelector(".btn-delete").addEventListener("click", () => {
+                    if(confirm(`Delete record ${record.description}?`)){
+                        record.active = false;
+                        saveAndRefresh();
+                    }
+                });
+                
+                return tr;
+            }
+
+            function createEditRow(record){
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${record.date}</td>
+                    <td><input type = "text" value = "${state.view.editDraft.category}" class = "input-edit edit-cat"></td>
+                    <td><input type = "text" value = "${state.view.editDraft.description}" class = "input-edit edit-desc"></td>
+                    <td><input type = "number" value = "${state.view.editDraft.amount}" class = "input-edit edit-amt"></td>
+                    <td>
+                        <button class = "btn-action btn-save" data-id = "${record.id}">Save</button>
+                        <button class = "btn-action btn-cancel" data-id = "${record.id}">Cancel</button>
+                    </td>
+                `;
+
+                tr.querySelector(".btn-save").addEventListener("click", () => {
+                    const updatedCat = tr.querySelector(".edit-cat").value;
+                    const updatedDesc = tr.querySelector(".edit-desc").value;
+                    const updatedAmt = tr.querySelector(".edit-amt").value;
+
+                    const target = state.rows.find(r => r.id === record.id);
+
+                    if(target){
+                        target.category = updatedCat;
+                        target.description = updatedDesc;
+                        target.amount = updatedAmt;
+                    }
+
+                    state.view.editingId = null;
+                    state.view.editDraft = {};
+
+                    saveAndRefresh();
+                });
+
+                tr.querySelector(".btn-cancel").addEventListener("click", () => {
+                    state.view.editingId = null;
+                    state.view.editDraft = {};
+                    renderRecordsTable();
+                });
+
+                return tr;
+            }
+
+            function saveAndRefresh(){
+                localStorage.setItem("records", JSON.stringify(state.rows));
+                renderRecordsTable();
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const cashedata = localStorage.getItem("records");
+                if(cashedata){
+                    state.rows = JSON.parse(cashedata);
+                    renderRecordsTable();
+                }else{
+                    fetch("seed.json")
+                        .then(response => response.json())
+                        .then(data => {
+                            state.rows = data.records.map(record => ({
+                                ...record, active: record.active !== undefined ? record.active : true
+                            }));
+                            localStorage.setItem("records", JSON.stringify(state.rows));
+                            renderRecordsTable();
+                        }).catch(error => {
+                            console.error("Error fetching seed data:", error);
+                        });
+                }
+            });
+
+        </script>
+
+    </section>
+
+    
+
+
+
+
+
+
+
+
+
+
+</body>
+
+<script>
+    const menuIcon = document.getElementById("menu-icon");
+    const sideMenuIcon = document.getElementById("side-menu-icon");
+    const sideNavbar = document.querySelector(".side-navbar");
+
+    function openSideNavbar() {
+        sideNavbar.classList.add('open');
+    }
+
+    function closeSideNavbar() {
+        sideNavbar.classList.remove('open');
+    }
+
+    menuIcon.addEventListener("click", openSideNavbar);
+    sideMenuIcon.addEventListener("click", closeSideNavbar);
+</script>
+
+</html>

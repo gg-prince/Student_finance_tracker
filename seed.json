@@ -1,0 +1,117 @@
+{
+  "app": "tally",
+  "version": 1,
+  "settings": {
+    "cap": 300
+  },
+  "records": [
+    {
+      "id": "rec_0001",
+      "description": "Lunch at cafeteria",
+      "amount": 12.5,
+      "category": "Food",
+      "date": "2025-09-25",
+      "createdAt": "2025-09-25T09:30:00.000Z",
+      "updatedAt": "2025-09-25T09:30:00.000Z"
+    },
+    {
+      "id": "rec_0002",
+      "description": "Chemistry textbook",
+      "amount": 89.99,
+      "category": "Books",
+      "date": "2025-09-23",
+      "createdAt": "2025-09-23T10:30:00.000Z",
+      "updatedAt": "2025-09-23T10:30:00.000Z"
+    },
+    {
+      "id": "rec_0003",
+      "description": "Bus pass",
+      "amount": 45.0,
+      "category": "Transport",
+      "date": "2025-09-20",
+      "createdAt": "2025-09-20T11:30:00.000Z",
+      "updatedAt": "2025-09-20T11:30:00.000Z"
+    },
+    {
+      "id": "rec_0004",
+      "description": "Coffee with friends",
+      "amount": 8.75,
+      "category": "Entertainment",
+      "date": "2025-09-28",
+      "createdAt": "2025-09-28T12:30:00.000Z",
+      "updatedAt": "2025-09-28T12:30:00.000Z"
+    },
+    {
+      "id": "rec_0005",
+      "description": "Notebook and pens",
+      "amount": 14.2,
+      "category": "Books",
+      "date": "2025-09-27",
+      "createdAt": "2025-09-27T13:30:00.000Z",
+      "updatedAt": "2025-09-27T13:30:00.000Z"
+    },
+    {
+      "id": "rec_0006",
+      "description": "Library late fee",
+      "amount": 3.5,
+      "category": "Fees",
+      "date": "2025-09-26",
+      "createdAt": "2025-09-26T14:30:00.000Z",
+      "updatedAt": "2025-09-26T14:30:00.000Z"
+    },
+    {
+      "id": "rec_0007",
+      "description": "Dinner with roommates",
+      "amount": 21.0,
+      "category": "Food",
+      "date": "2025-09-28",
+      "createdAt": "2025-09-28T15:30:00.000Z",
+      "updatedAt": "2025-09-28T15:30:00.000Z"
+    },
+    {
+      "id": "rec_0008",
+      "description": "Tea and pastry",
+      "amount": 6.4,
+      "category": "Food",
+      "date": "2025-09-24",
+      "createdAt": "2025-09-24T16:30:00.000Z",
+      "updatedAt": "2025-09-24T16:30:00.000Z"
+    },
+    {
+      "id": "rec_0009",
+      "description": "Campus shuttle top up",
+      "amount": 10.0,
+      "category": "Transport",
+      "date": "2025-09-22",
+      "createdAt": "2025-09-22T09:30:00.000Z",
+      "updatedAt": "2025-09-22T09:30:00.000Z"
+    },
+    {
+      "id": "rec_0010",
+      "description": "Movie night",
+      "amount": 15.0,
+      "category": "Entertainment",
+      "date": "2025-09-21",
+      "createdAt": "2025-09-21T10:30:00.000Z",
+      "updatedAt": "2025-09-21T10:30:00.000Z"
+    },
+    {
+      "id": "rec_0011",
+      "description": "Printing lab notes",
+      "amount": 4.25,
+      "category": "Fees",
+      "date": "2025-09-28",
+      "createdAt": "2025-09-28T11:30:00.000Z",
+      "updatedAt": "2025-09-28T11:30:00.000Z"
+    },
+    {
+      "id": "rec_0012",
+      "description": "Groceries",
+      "amount": 33.6,
+      "category": "Food",
+      "date": "2025-09-23",
+      "createdAt": "2025-09-23T12:30:00.000Z",
+      "updatedAt": "2025-09-23T12:30:00.000Z"
+    }
+  ]
+}

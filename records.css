@@ -1,0 +1,181 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+.records-section{
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    width: 80%;
+    height: 100%;
+}
+
+.records-section h1{
+    font-size: 28px;
+    margin: 20px 0;
+}
+.search{
+    display: flex;
+    width: fit-content;
+    /* justify-content: space-between; */
+}
+.search-bar{
+    width: 400px;
+    height: 40px;
+    margin: 0 10px 0 20px;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 0 10px;
+}
+.search select{
+    width: 180px;
+    height: 40px;
+    margin: 0 10px 0 0;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 0 10px;
+    background-color: white;
+}
+.search button{
+    width: 100px;
+    height: 40px;
+    margin: 0 0;
+    border: none;
+    border-radius: 5px;
+    background-color: green;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.search button:hover{
+    width: 97px;
+    height: 37px;
+}
+.shortcuts{
+    width: fit-content;
+    margin: 10px 20px;
+}
+.shortcuts button{
+    padding: 5px 10px;
+    background-color: lightgray;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+.shortcuts button:hover{
+    border: 1px solid gray;
+}
+
+.records-table{
+    margin: 10px 20px;
+}
+.records-table th{
+    background-color: lightgray;
+}
+.records-table th, .records-table td{
+    text-align: justify;
+    padding: 15px 7px;
+    border: none;
+}
+.records-table tr:nth-child(even){
+    background-color: rgb(242, 251, 255);
+}
+.records-table tr:hover{
+    background-color: rgb(240, 240, 240);
+}
+.left-corner{
+    border-radius: 10px 0 0 0;
+}
+.right-corner{
+    border-radius: 0 10px 0 0;
+}
+.action-btns{
+    text-align: center;
+}
+.btn-edit, .btn-save{
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    border-radius: 7px; 
+    border: 2px solid skyblue;
+    transition: all 0.2s ease-in-out;
+}
+.btn-delete, .btn-cancel{
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    border-radius: 7px;
+    border: 2px solid rgb(255, 169, 169);
+    transition: all 0.2s ease-in-out;
+}
+.btn-edit:hover, .btn-save:hover{
+    border: 2px solid blue;
+}
+.btn-delete:hover, .btn-cancel:hover{
+    border: 2px solid red;
+}
+
+@media screen and (max-width: 827px){
+    .records-section h1{
+        font-size: 18px;
+    }
+    .search-bar{
+        width: 250px;
+        height: 35px;
+    }
+    .search select{
+        width: 90px;
+        height: 35px;
+    }
+    .search button{
+        width: 80px;
+        height: 35px;
+        font-size: 12px;
+    }
+    .search button:hover{
+        width: 77px;
+        height: 32px;
+    }
+}
+
+@media screen and (max-width: 525px){
+    .records-section{
+        width: 100%;
+    }
+    .records-section h1{
+        font-size: 16px;
+    }
+    .search-bar{
+        width: 120px;
+        height: 30px;
+    }
+    .search select{
+        width: 70px;
+        height: 30px;
+    }
+    .search button{
+        width: 50px;
+        height: 30px;
+        font-size: 12px;
+    }
+    .search button:hover{
+        width: 47px;
+        height: 27px;
+    }
+    .records-table{
+        margin: 10px 0;
+    }
+    .records-table th, .records-table td{
+        padding: 10px 0;
+        word-break: break-word;
+        min-width: 50px;
+    }
+}
