@@ -14,12 +14,14 @@
 
 <body>
 
+    <!-- Main nav -->
     <nav class = "navbar">
         <span id = "menu-icon" class = "menu-icon">&#9776;</span>
         <h1 class = "logo">Traksta</h1>
         <ul class = "nav-links">
             <li><a href = "index.html">Home</a></li>
             <li><a href = "records.html">Records</a></li>
+            <li><a href = "Add.html">Add</a></li>
             <li><a href = "#">Settings</a></li>
             <li><a href = "#">About</a></li>
         </ul>
@@ -30,12 +32,15 @@
         </select>
     </nav>
 
+    <!-- Side nav for mobile -->
+
     <nav class = "side-navbar">
         <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
         <h1 class = "side-logo">Traksta</h1></div>
         <ul class = "side-nav-links">
             <li><a href = "index.html">Home</a></li>
             <li><a href = "records.html">Records</a></li>
+            <li><a href = "Add.html">Add</a></li>
             <li><a href = "#">Settings</a></li>
             <li><a href = "#">About</a></li>
         </ul>
@@ -56,10 +61,11 @@
             <button class = "add-record">Add</button>
         </div>
         <div class = "shortcuts">
-            <button>Cents</button>
-            <button>Coffee or Tea</button>
-            <button>Repeated word</button>
+            <button data-pattern = "\.\d{2}\b">Cents</button>
+            <button data-pattern = "(coffee|tea)">Coffee or Tea</button>
+            <button data-pattern = "\b(\w+)\s+\1\b">Repeated word</button>
         </div>
+        <p id = "search-error"></p>
 
         <hr>
 
@@ -74,142 +80,205 @@
             <tbody id = "table-body"></tbody>
         </table>
 
-        <script>
-            let state = {
-                rows: [],
-                view: {
-                    editingId: null,
-                    editDraft: {}
-                }
-            };
+<script>
+    let state = {
+        rows: [],
+        view: {
+            editingId: null,
+            editDraft: {}
+        }
+    };
 
-            function renderRecordsTable(){
+    function renderRecordsTable(rowsToRender = state.rows){
 
-                const body = document.getElementById("table-body");
-                body.innerHTML = "";
-                state.rows.forEach(record => {
+        const body = document.getElementById("table-body");
+        body.innerHTML = "";
 
-                    if(record.active === false) return;
+        rowsToRender.forEach(record => {
 
-                    if(state.view.editingId === record.id){
-                        body.appendChild(createEditRow(record));
-                    }else{
-                        body.appendChild(createReadRow(record));
-                    }
+            if(record.active === false) return;
 
-                });
-
+            if(state.view.editingId === record.id){
+                body.appendChild(createEditRow(record));
+            }else{
+                body.appendChild(createReadRow(record));
             }
 
-            function createReadRow(record){
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${record.date}</td>
-                    <td>${record.category}</td>
-                    <td>${record.description}</td>
-                    <td>${record.amount}</td>
-                    <td class = "action-btns">
-                        <button class = "btn-action btn-edit" data-id = "${record.id}">Edit</button>
-                        <button class = "btn-action btn-delete" data-id = "${record.id}">Delete</button>
-                    </td>
-                `;
+        });
 
+    }
 
-                tr.querySelector(".btn-edit").addEventListener("click", () => {
-                    state.view.editingId = record.id;
-                    state.view.editDraft = {...record};
-                    renderRecordsTable();
-                });
+    // Creating a row
 
-                tr.querySelector(".btn-delete").addEventListener("click", () => {
-                    if(confirm(`Delete record ${record.description}?`)){
-                        record.active = false;
-                        saveAndRefresh();
-                    }
-                });
-                
-                return tr;
+    function createReadRow(record){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${record.date}</td>
+            <td>${record.category}</td>
+            <td>${record.description}</td>
+            <td>${record.amount}</td>
+            <td class = "action-btns">
+                <button class = "btn-action btn-edit" data-id = "${record.id}">Edit</button>
+                <button class = "btn-action btn-delete" data-id = "${record.id}">Delete</button>
+            </td>
+        `;
+
+        tr.querySelector(".btn-edit").addEventListener("click", () => {
+            state.view.editingId = record.id;
+            state.view.editDraft = {...record};
+            handleSearchAndFilter();      // was renderRecordsTable(): this keeps the search active
+        });
+
+        tr.querySelector(".btn-delete").addEventListener("click", () => {
+            if(confirm(`Delete record ${record.description}?`)){
+                record.active = false;
+                saveAndRefresh();
+            }
+        });
+
+        return tr;
+    }
+
+    // Temporary edit row
+    function createEditRow(record){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${record.date}</td>
+            <td><input type = "text" value = "${state.view.editDraft.category}" class = "input-edit edit-cat"></td>
+            <td><input type = "text" value = "${state.view.editDraft.description}" class = "input-edit edit-desc"></td>
+            <td><input type = "number" value = "${state.view.editDraft.amount}" class = "input-edit edit-amt"></td>
+            <td>
+                <button class = "btn-action btn-save" data-id = "${record.id}">Save</button>
+                <button class = "btn-action btn-cancel" data-id = "${record.id}">Cancel</button>
+            </td>
+        `;
+
+        tr.querySelector(".btn-save").addEventListener("click", () => {
+            const target = state.rows.find(r => r.id === record.id);
+
+            if(target){
+                target.category = tr.querySelector(".edit-cat").value;
+                target.description = tr.querySelector(".edit-desc").value;
+                target.amount = Number(tr.querySelector(".edit-amt").value);   // keep it a number
             }
 
-            function createEditRow(record){
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${record.date}</td>
-                    <td><input type = "text" value = "${state.view.editDraft.category}" class = "input-edit edit-cat"></td>
-                    <td><input type = "text" value = "${state.view.editDraft.description}" class = "input-edit edit-desc"></td>
-                    <td><input type = "number" value = "${state.view.editDraft.amount}" class = "input-edit edit-amt"></td>
-                    <td>
-                        <button class = "btn-action btn-save" data-id = "${record.id}">Save</button>
-                        <button class = "btn-action btn-cancel" data-id = "${record.id}">Cancel</button>
-                    </td>
-                `;
+            state.view.editingId = null;
+            state.view.editDraft = {};
 
-                tr.querySelector(".btn-save").addEventListener("click", () => {
-                    const updatedCat = tr.querySelector(".edit-cat").value;
-                    const updatedDesc = tr.querySelector(".edit-desc").value;
-                    const updatedAmt = tr.querySelector(".edit-amt").value;
+            saveAndRefresh();
+        });
 
-                    const target = state.rows.find(r => r.id === record.id);
+        tr.querySelector(".btn-cancel").addEventListener("click", () => {
+            state.view.editingId = null;
+            state.view.editDraft = {};
+            handleSearchAndFilter();
+        });
 
-                    if(target){
-                        target.category = updatedCat;
-                        target.description = updatedDesc;
-                        target.amount = updatedAmt;
-                    }
+        return tr;
+    }
 
-                    state.view.editingId = null;
-                    state.view.editDraft = {};
+    function saveAndRefresh(){
+        localStorage.setItem("records", JSON.stringify(state.rows));
+        handleSearchAndFilter();
+    }
 
-                    saveAndRefresh();
+    // Searching and sorting
+
+    function handleSearchAndFilter(){
+        const searchBar = document.querySelector(".search-bar");
+        const errorBox = document.getElementById("search-error");
+        const sortBy = document.querySelector(".filter").value;
+        const rawQuery = searchBar.value;
+
+        let rows = state.rows;
+        errorBox.textContent = "";
+
+        if(rawQuery.trim() !== ""){
+            try{
+                // No "g" flag, so .test() gives the same answer every time.
+                const searchRegex = new RegExp(rawQuery, "i");
+
+                rows = state.rows.filter(record => {
+                    const fields = [
+                        record.date,
+                        record.category,
+                        record.description,
+                        Number(record.amount).toFixed(2)    // 45 becomes "45.00", so the cents pattern works
+                    ];
+                    return fields.some(value => searchRegex.test(String(value ?? "")));
                 });
 
-                tr.querySelector(".btn-cancel").addEventListener("click", () => {
-                    state.view.editingId = null;
-                    state.view.editDraft = {};
-                    renderRecordsTable();
-                });
-
-                return tr;
+            }catch(e){
+                errorBox.textContent = "Invalid pattern: " + e.message;
             }
+        }
 
-            function saveAndRefresh(){
+        // The Date / Amount dropdown, newest or biggest first
+        rows = [...rows].sort((a, b) => {
+            if(sortBy === "amount") return Number(b.amount) - Number(a.amount);
+            return String(b.date).localeCompare(String(a.date));
+        });
+
+        renderRecordsTable(rows);
+    }
+
+    // Loading the data
+
+    function loadRecords(){
+        const cached = JSON.parse(localStorage.getItem("records") || "[]");
+
+        if(cached.length > 0){
+            state.rows = cached;
+            handleSearchAndFilter();
+            return;
+        }
+
+        fetch("seed.json")
+            .then(response => {
+                if(!response.ok) throw new Error("seed.json: HTTP " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                const list = Array.isArray(data) ? data : data.records;
+                state.rows = list.map(record => ({
+                    ...record,
+                    active: record.active !== undefined ? record.active : true
+                }));
                 localStorage.setItem("records", JSON.stringify(state.rows));
-                renderRecordsTable();
-            }
-
-            document.addEventListener("DOMContentLoaded", () => {
-                const cashedata = localStorage.getItem("records");
-                if(cashedata){
-                    state.rows = JSON.parse(cashedata);
-                    renderRecordsTable();
-                }else{
-                    fetch("seed.json")
-                        .then(response => response.json())
-                        .then(data => {
-                            state.rows = data.records.map(record => ({
-                                ...record, active: record.active !== undefined ? record.active : true
-                            }));
-                            localStorage.setItem("records", JSON.stringify(state.rows));
-                            renderRecordsTable();
-                        }).catch(error => {
-                            console.error("Error fetching seed data:", error);
-                        });
-                }
+                handleSearchAndFilter();
+            })
+            .catch(error => {
+                console.error("Error loading seed data:", error);
+                state.rows = [];
+                handleSearchAndFilter();
             });
+    }
 
-        </script>
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchBar = document.querySelector(".search-bar");
+        const shortcutButtons = document.querySelectorAll(".shortcuts button");
+
+        searchBar.addEventListener("input", handleSearchAndFilter);
+        document.querySelector(".filter").addEventListener("change", handleSearchAndFilter);
+
+        shortcutButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const pattern = button.dataset.pattern;
+
+                searchBar.value = (searchBar.value === pattern) ? "" : pattern;
+
+                handleSearchAndFilter();
+            });
+        });
+
+        loadRecords();
+    });
+
+
+</script>
 
     </section>
-
-    
-
-
-
-
-
-
-
-
 
 
 </body>
@@ -228,7 +297,7 @@
     }
 
     menuIcon.addEventListener("click", openSideNavbar);
-    sideMenuIcon.addEventListener("click", closeSideNavbar);
+    
 </script>
 
 </html>
