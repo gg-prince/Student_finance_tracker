@@ -1,0 +1,510 @@
+<!Doctype html>
+<html lang = "en">
+
+<head>
+
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>Settings | Finance Tracker</title>
+
+    <link rel = "stylesheet" href = "base.css">
+    <link rel = "stylesheet" href = "settings.css">
+
+</head>
+
+<body>
+
+    <!-- Main nav -->
+    <nav class = "navbar">
+        <span id = "menu-icon" class = "menu-icon">&#9776;</span>
+        <h1 class = "logo">Traksta</h1>
+        <ul class = "nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "Add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+        <select class = "currency"></select>
+    </nav>
+
+    <!-- Side nav for mobile -->
+
+    <nav class = "side-navbar">
+        <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
+        <h1 class = "side-logo">Traksta</h1></div>
+        <ul class = "side-nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+    </nav>
+
+
+
+    <section class = "settings-section">
+
+        <h1 class = "settings-title">Settings</h1>
+
+        <p id = "settings-msg" role = "status"></p>
+
+        <!-- Currency -->
+        <form id = "currency-form" class = "settings-block" novalidate>
+            <h2>Currency and cap</h2>
+            <p class = "note">Amounts are saved in the base currency. For the other two, type how many of them equal 1 unit of the base currency (example: 1 USD = 1450 RWF).</p>
+
+            <div class = "fields">
+                <div class = "field">
+                    <label for = "base-code">Base currency</label>
+                    <input type = "text" id = "base-code" maxlength = "3" placeholder = "USD" autocomplete = "off">
+                    <p class = "error" id = "base-code-error"></p>
+                </div>
+                <div class = "field">
+                    <label for = "cap">Spending cap</label>
+                    <input type = "text" id = "cap" placeholder = "Leave blank for none" autocomplete = "off">
+                    <p class = "error" id = "cap-error"></p>
+                </div>
+            </div>
+
+            <div class = "fields">
+                <div class = "field">
+                    <label for = "cur2-code">Second currency</label>
+                    <input type = "text" id = "cur2-code" maxlength = "3" placeholder = "EUR" autocomplete = "off">
+                    <p class = "error" id = "cur2-code-error"></p>
+                </div>
+                <div class = "field">
+                    <label for = "cur2-rate">Rate</label>
+                    <input type = "text" id = "cur2-rate" placeholder = "0.92" autocomplete = "off">
+                    <p class = "error" id = "cur2-rate-error"></p>
+                </div>
+            </div>
+
+            <div class = "fields">
+                <div class = "field">
+                    <label for = "cur3-code">Third currency</label>
+                    <input type = "text" id = "cur3-code" maxlength = "3" placeholder = "RWF" autocomplete = "off">
+                    <p class = "error" id = "cur3-code-error"></p>
+                </div>
+                <div class = "field">
+                    <label for = "cur3-rate">Rate</label>
+                    <input type = "text" id = "cur3-rate" placeholder = "1450" autocomplete = "off">
+                    <p class = "error" id = "cur3-rate-error"></p>
+                </div>
+            </div>
+
+            <button type = "submit" class = "btn-primary">Save settings</button>
+        </form>
+
+        <hr>
+
+        <!-- Categories -->
+        <div class = "settings-block">
+            <h2>Categories</h2>
+            <p class = "note">These are the categories you can pick when adding a record. A category that still has records cannot be removed.</p>
+
+            <ul id = "category-list"></ul>
+
+            <form id = "category-form" class = "add-category" novalidate>
+                <div class = "fields">
+                    <div class = "field">
+                        <label for = "new-category">New category</label>
+                        <input type = "text" id = "new-category" autocomplete = "off">
+                        <p class = "error" id = "new-category-error"></p>
+                    </div>
+                </div>
+                <button type = "submit" class = "btn-secondary">Add category</button>
+            </form>
+        </div>
+
+        <hr>
+
+        <!-- Data -->
+        <div class = "settings-block">
+            <h2>Your data</h2>
+            <p class = "note">Everything is saved in this browser. Export a backup, import one to replace your records, or delete everything.</p>
+
+            <div class = "button-row">
+                <button type = "button" id = "export-btn" class = "btn-primary">Export JSON</button>
+                <button type = "button" id = "clear-btn" class = "btn-danger">Delete all records</button>
+            </div>
+
+            <div class = "fields">
+                <div class = "field">
+                    <label for = "import-file">Import a JSON file</label>
+                    <input type = "file" id = "import-file" accept = ".json,application/json">
+                </div>
+            </div>
+            <ul id = "import-errors" class = "note"></ul>
+        </div>
+
+<script>
+    // ---------- Rules (regex) ----------
+    const CODE_RULE = /^[A-Z]{3}$/;                              // 3 capital letters
+    const RATE_RULE = /^(?!0+(?:\.0+)?$)\d+(?:\.\d{1,6})?$/;     // above 0 (the (?!...) lookahead blocks 0, 0.0, 000)
+    const CAP_RULE = /^(0|[1-9]\d*)(\.\d{1,2})?$/;               // 300 or 300.50
+    const CATEGORY_RULE = /^[A-Za-z]+(?:[ -][A-Za-z]+)*$/;       // letters, single spaces or hyphens
+    const DATE_RULE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+    const DEFAULT_SETTINGS = {
+        baseCurrency: "USD",
+        otherCurrencies: [
+            {code: "EUR", rate: 0.92},
+            {code: "RWF", rate: 1450}
+        ],
+        displayCurrency: "USD",
+        cap: null,
+        categories: ["Food", "Books", "Transport", "Entertainment", "Fees", "Other"]
+    };
+
+    // ---------- Loading and saving ----------
+
+    function getSettings(){
+        try{
+            const saved = JSON.parse(localStorage.getItem("settings"));
+            if(saved && saved.baseCurrency && saved.otherCurrencies && saved.categories){
+                return saved;
+            }
+        }catch(e){
+            console.error("Saved settings were unreadable, using defaults:", e);
+        }
+        return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    }
+
+    function saveSettings(settings){
+        localStorage.setItem("settings", JSON.stringify(settings));
+    }
+
+    function getRecords(){
+        try{
+            const list = JSON.parse(localStorage.getItem("records") || "[]");
+            return Array.isArray(list) ? list : [];
+        }catch(e){
+            return [];
+        }
+    }
+
+    // ---------- Small helpers ----------
+
+    function showMessage(text, isError = false){
+        const box = document.getElementById("settings-msg");
+        box.textContent = text;
+        box.classList.toggle("is-error", isError);
+    }
+
+    function setError(inputId, text){
+        document.getElementById(inputId + "-error").textContent = text;
+        document.getElementById(inputId).style.borderColor = text ? "red" : "black";
+    }
+
+    // ---------- Currency and cap ----------
+
+    function fillCurrencyForm(){
+        const s = getSettings();
+        document.getElementById("base-code").value = s.baseCurrency;
+        document.getElementById("cap").value = s.cap === null ? "" : s.cap;
+        document.getElementById("cur2-code").value = s.otherCurrencies[0].code;
+        document.getElementById("cur2-rate").value = s.otherCurrencies[0].rate;
+        document.getElementById("cur3-code").value = s.otherCurrencies[1].code;
+        document.getElementById("cur3-rate").value = s.otherCurrencies[1].rate;
+    }
+
+    // The currency dropdown in the navbar
+    function fillNavbarCurrency(){
+        const s = getSettings();
+        const select = document.querySelector(".currency");
+        select.innerHTML = "";
+        [s.baseCurrency, s.otherCurrencies[0].code, s.otherCurrencies[1].code].forEach(code => {
+            const option = document.createElement("option");
+            option.value = code;
+            option.textContent = code;
+            select.appendChild(option);
+        });
+        select.value = s.displayCurrency;
+    }
+
+    function handleCurrencySubmit(event){
+        event.preventDefault();
+
+        const base = document.getElementById("base-code").value.trim().toUpperCase();
+        const code2 = document.getElementById("cur2-code").value.trim().toUpperCase();
+        const code3 = document.getElementById("cur3-code").value.trim().toUpperCase();
+        const rate2 = document.getElementById("cur2-rate").value.trim();
+        const rate3 = document.getElementById("cur3-rate").value.trim();
+        const cap = document.getElementById("cap").value.trim();
+
+        // clear old errors
+        ["base-code", "cap", "cur2-code", "cur2-rate", "cur3-code", "cur3-rate"].forEach(id => setError(id, ""));
+        let ok = true;
+
+        if(!CODE_RULE.test(base)){ setError("base-code", "Use 3 letters, like USD."); ok = false; }
+        if(!CODE_RULE.test(code2)){ setError("cur2-code", "Use 3 letters, like EUR."); ok = false; }
+        if(!CODE_RULE.test(code3)){ setError("cur3-code", "Use 3 letters, like RWF."); ok = false; }
+        if(!RATE_RULE.test(rate2)){ setError("cur2-rate", "Use a number above 0, like 0.92."); ok = false; }
+        if(!RATE_RULE.test(rate3)){ setError("cur3-rate", "Use a number above 0, like 1450."); ok = false; }
+        if(cap !== "" && !CAP_RULE.test(cap)){ setError("cap", "Use digits with up to 2 decimals, or leave blank."); ok = false; }
+
+        // the 3 codes must be different
+        if(ok && new Set([base, code2, code3]).size !== 3){
+            setError("cur3-code", "Each currency code must be different.");
+            ok = false;
+        }
+
+        if(!ok){
+            showMessage("Fix the red fields and try again.", true);
+            return;
+        }
+
+        const settings = getSettings();
+        settings.baseCurrency = base;
+        settings.otherCurrencies = [
+            {code: code2, rate: Number(rate2)},
+            {code: code3, rate: Number(rate3)}
+        ];
+        settings.cap = cap === "" ? null : Number(cap);
+
+        // keep the chosen display currency only if it still exists
+        if(![base, code2, code3].includes(settings.displayCurrency)){
+            settings.displayCurrency = base;
+        }
+
+        saveSettings(settings);
+        fillNavbarCurrency();
+        showMessage("Settings saved.");
+    }
+
+    // ---------- Categories ----------
+
+    function renderCategories(){
+        const list = document.getElementById("category-list");
+        const records = getRecords().filter(r => r.active !== false);
+        list.innerHTML = "";
+
+        getSettings().categories.forEach(name => {
+            const used = records.filter(r => r.category === name).length;
+
+            const li = document.createElement("li");
+            const label = document.createElement("span");
+            label.textContent = used > 0 ? name + " (" + used + ")" : name;
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "btn-remove";
+            remove.textContent = "Remove";
+            remove.setAttribute("aria-label", "Remove category " + name);
+            remove.addEventListener("click", () => removeCategory(name, used));
+
+            li.appendChild(label);
+            li.appendChild(remove);
+            list.appendChild(li);
+        });
+    }
+
+    function removeCategory(name, used){
+        if(used > 0){
+            showMessage("Can't remove " + name + ": " + used + " record(s) use it.", true);
+            return;
+        }
+        const settings = getSettings();
+        settings.categories = settings.categories.filter(c => c !== name);
+        saveSettings(settings);
+        renderCategories();
+        showMessage("Removed category " + name + ".");
+    }
+
+    function handleCategorySubmit(event){
+        event.preventDefault();
+
+        const input = document.getElementById("new-category");
+        const name = input.value.replace(/\s{2,}/g, " ");     // collapse double spaces
+        const settings = getSettings();
+
+        let error = "";
+        if(!CATEGORY_RULE.test(name)){
+            error = "Use letters only, with single spaces or hyphens between words.";
+        }else if(settings.categories.some(c => c.toLowerCase() === name.toLowerCase())){
+            error = name + " is already in the list.";
+        }
+
+        setError("new-category", error);
+        if(error) return;
+
+        settings.categories.push(name);
+        saveSettings(settings);
+        input.value = "";
+        renderCategories();
+        showMessage("Added category " + name + ".");
+    }
+
+    // Export / import / delete
+
+    function handleExport(){
+        const data = {
+            settings: getSettings(),
+            records: getRecords().filter(r => r.active !== false)
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "finance-export.json";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+        showMessage("Exported " + data.records.length + " record(s).");
+    }
+
+    // Returns a list of problems. An empty list means the file is safe to load.
+    function checkImport(data){
+        const problems = [];
+        const list = Array.isArray(data) ? data : data && data.records;
+
+        if(!Array.isArray(list)){
+            return ["The file must be a list of records, or an object with a \"records\" list."];
+        }
+
+        const seen = new Set();
+        list.forEach((r, i) => {
+            const n = "Record " + (i + 1) + ": ";
+            if(!r || typeof r !== "object"){ problems.push(n + "must be an object."); return; }
+            if(typeof r.id !== "string" || r.id === ""){ problems.push(n + "needs an id."); }
+            else if(seen.has(r.id)){ problems.push(n + "id \"" + r.id + "\" is used twice."); }
+            else{ seen.add(r.id); }
+            if(typeof r.description !== "string" || r.description.trim() === ""){ problems.push(n + "needs a description."); }
+            if(typeof r.amount !== "number" || !CAP_RULE.test(String(r.amount))){ problems.push(n + "amount must be a number with up to 2 decimals."); }
+            if(typeof r.category !== "string" || !CATEGORY_RULE.test(r.category)){ problems.push(n + "category must be letters, spaces or hyphens."); }
+            if(typeof r.date !== "string" || !DATE_RULE.test(r.date)){ problems.push(n + "date must look like 2025-09-29."); }
+        });
+
+        if(data && !Array.isArray(data) && data.settings){
+            const s = data.settings;
+            const okSettings = s && CODE_RULE.test(s.baseCurrency || "") &&
+                Array.isArray(s.otherCurrencies) && s.otherCurrencies.length === 2 &&
+                s.otherCurrencies.every(c => c && CODE_RULE.test(c.code || "") && RATE_RULE.test(String(c.rate))) &&
+                Array.isArray(s.categories) && s.categories.every(c => CATEGORY_RULE.test(c));
+            if(!okSettings){ problems.push("The settings in the file are not valid."); }
+        }
+
+        return problems;
+    }
+
+    function handleImport(event){
+        const input = event.target;
+        const file = input.files[0];
+        const errorList = document.getElementById("import-errors");
+        errorList.innerHTML = "";
+
+        if(!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            let data;
+            try{
+                data = JSON.parse(reader.result);
+            }catch(e){
+                showMessage("Import stopped: that file is not valid JSON.", true);
+                input.value = "";
+                return;
+            }
+
+            const problems = checkImport(data);
+            if(problems.length > 0){
+                problems.slice(0, 8).forEach(text => {
+                    const li = document.createElement("li");
+                    li.textContent = text;
+                    errorList.appendChild(li);
+                });
+                showMessage("Import stopped: " + problems.length + " problem(s) found. Nothing was changed.", true);
+                input.value = "";
+                return;
+            }
+
+            const list = Array.isArray(data) ? data : data.records;
+            if(!confirm("Replace your current records with " + list.length + " record(s) from this file?")){
+                input.value = "";
+                return;
+            }
+
+            const now = new Date().toISOString();
+            const records = list.map(r => ({
+                id: r.id,
+                description: r.description,
+                amount: r.amount,
+                category: r.category,
+                date: r.date,
+                createdAt: r.createdAt || now,
+                updatedAt: r.updatedAt || now,
+                active: true
+            }));
+            localStorage.setItem("records", JSON.stringify(records));
+
+            if(!Array.isArray(data) && data.settings){
+                const merged = Object.assign(getSettings(), data.settings);
+                saveSettings(merged);
+            }
+
+            input.value = "";
+            fillCurrencyForm();
+            fillNavbarCurrency();
+            renderCategories();
+            showMessage("Imported " + records.length + " record(s).");
+        };
+
+        reader.onerror = () => showMessage("Import stopped: the file could not be read.", true);
+        reader.readAsText(file);
+    }
+
+    function handleClear(){
+        if(!confirm("Delete ALL records? This cannot be undone. Export a backup first if you might need them.")) return;
+        localStorage.setItem("records", "[]");
+        renderCategories();
+        showMessage("All records deleted.");
+    }
+
+    // start
+
+    document.addEventListener("DOMContentLoaded", () => {
+        fillCurrencyForm();
+        fillNavbarCurrency();
+        renderCategories();
+
+        document.getElementById("currency-form").addEventListener("submit", handleCurrencySubmit);
+        document.getElementById("category-form").addEventListener("submit", handleCategorySubmit);
+        document.getElementById("export-btn").addEventListener("click", handleExport);
+        document.getElementById("import-file").addEventListener("change", handleImport);
+        document.getElementById("clear-btn").addEventListener("click", handleClear);
+
+        // changing the navbar currency is remembered
+        document.querySelector(".currency").addEventListener("change", event => {
+            const settings = getSettings();
+            settings.displayCurrency = event.target.value;
+            saveSettings(settings);
+        });
+    });
+</script>
+
+    </section>
+
+
+</body>
+
+<script>
+    const menuIcon = document.getElementById("menu-icon");
+    const sideMenuIcon = document.getElementById("side-menu-icon");
+    const sideNavbar = document.querySelector(".side-navbar");
+
+    function openSideNavbar() {
+        sideNavbar.classList.add('open');
+    }
+
+    function closeSideNavbar() {
+        sideNavbar.classList.remove('open');
+    }
+
+    menuIcon.addEventListener("click", openSideNavbar);
+    sideMenuIcon.addEventListener("click", closeSideNavbar);
+</script>
+
+</html>

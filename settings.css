@@ -1,0 +1,198 @@
+/* settings.css - same look as records.css (base.css still supplies the navbar) */
+
+.settings-section{
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    width: 80%;
+    height: 100%;
+}
+
+.settings-section h1{
+    font-size: 28px;
+    margin: 20px 0;
+}
+
+.settings-section h2{
+    font-size: 20px;
+    margin: 10px 20px;
+}
+
+.settings-block{
+    margin: 0 0 10px 0;
+}
+
+.note{
+    margin: 0 20px 10px 20px;
+    color: gray;
+    font-size: 14px;
+}
+
+/* ---------- form fields ---------- */
+.fields{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin: 10px 20px;
+}
+
+.field{
+    display: flex;
+    flex-direction: column;
+    width: 180px;
+}
+
+.field label{
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.settings-section input[type="text"]{
+    width: 100%;
+    height: 40px;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 0 10px;
+}
+
+.settings-section input[type="file"]{
+    margin: 0 20px;
+}
+
+.error{
+    color: red;
+    font-size: 13px;
+    min-height: 16px;
+    margin-top: 3px;
+}
+
+#settings-msg{
+    margin: 10px 20px;
+    min-height: 20px;
+    font-size: 15px;
+    color: green;
+}
+
+#settings-msg.is-error{
+    color: red;
+}
+
+/* ---------- buttons ---------- */
+.btn-primary, .btn-secondary, .btn-danger{
+    height: 40px;
+    padding: 0 20px;
+    margin: 10px 10px 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary{
+    background-color: green;
+    color: white;
+}
+
+.btn-primary:hover{
+    height: 37px;
+    padding: 0 18px;
+}
+
+.btn-secondary{
+    background-color: lightgray;
+    border: 1px solid transparent;
+    margin-left: 0;
+}
+
+.btn-secondary:hover{
+    border: 1px solid gray;
+}
+
+.btn-danger{
+    background-color: white;
+    border: 2px solid rgb(255, 169, 169);
+    margin-left: 0;
+}
+
+.btn-danger:hover{
+    border: 2px solid red;
+}
+
+.button-row{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* ---------- categories ---------- */
+#category-list{
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 20px;
+}
+
+#category-list li{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 5px 5px 12px;
+    background-color: lightgray;
+    border-radius: 5px;
+}
+
+.btn-remove{
+    padding: 3px 8px;
+    border: 2px solid rgb(255, 169, 169);
+    border-radius: 7px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-remove:hover{
+    border: 2px solid red;
+}
+
+.add-category{
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+@media screen and (max-width: 827px){
+    .settings-section h1{
+        font-size: 18px;
+    }
+    .settings-section h2{
+        font-size: 16px;
+    }
+}
+
+@media screen and (max-width: 525px){
+    .settings-section{
+        width: 100%;
+    }
+    .settings-section h1{
+        font-size: 16px;
+    }
+    .fields{
+        margin: 10px;
+    }
+    .field{
+        width: 100%;
+    }
+    .note, #settings-msg, #category-list{
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .btn-primary{
+        margin-left: 10px;
+    }
+    .settings-section input[type="file"]{
+        margin: 0 10px;
+        max-width: 100%;
+    }
+}
