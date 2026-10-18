@@ -130,7 +130,7 @@ body{
     }
 }
 
-@media screen and (max-width: 525px){
+@media screen and (max-width: 360px){
     .navbar{
         display: flex;
         padding: 20px;

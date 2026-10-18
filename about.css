@@ -103,7 +103,7 @@
     background-color: #00235d;
 }
 
-@media screen and (max-width: 827px){
+@media screen and (max-width: 768px){
     .about-section h1{
         font-size: 18px;
     }
@@ -112,7 +112,7 @@
     }
 }
 
-@media screen and (max-width: 525px){
+@media screen and (max-width: 360px){
     .about-section{
         width: 100%;
     }

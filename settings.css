@@ -124,7 +124,7 @@
     flex-wrap: wrap;
 }
 
-/* ---------- categories ---------- */
+/*categories*/
 #category-list{
     list-style: none;
     display: flex;
@@ -162,7 +162,7 @@
     flex-wrap: wrap;
 }
 
-@media screen and (max-width: 827px){
+@media screen and (max-width: 768px){
     .settings-section h1{
         font-size: 18px;
     }
@@ -171,7 +171,7 @@
     }
 }
 
-@media screen and (max-width: 525px){
+@media screen and (max-width: 360px){
     .settings-section{
         width: 100%;
     }
