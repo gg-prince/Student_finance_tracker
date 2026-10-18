@@ -8,20 +8,23 @@ Contact: GitHub [gg-prince](https://github.com/gg-prince/Student_finance_tracker
 
 Pages and what they do:
 
-| Page | What it does |
-|---|---|
-| index.html (Home) | Dashboard: budget cap meter, record count, total spent, top category, last-7-days total and bar chart, 5 newest records |
-| records.html | Table of all records. Regex search with one-click shortcuts, sort by date or amount, edit and delete (delete asks first) |
-| Add.html | Add a record. Every field is checked as you type |
-| settings.html | Base currency plus two others with manual rates, spending cap, categories, export / import JSON, delete all |
-| about.html | Purpose, how to use it, search tips, contact |
+
+| Page | Description & Key Features |
+| :--- | :--- |
+| **index.html** (Home) | **Dashboard:** Budget cap meter, record count, total spent, top category, last-7-days total and bar chart, and 5 newest records. |
+| **records.html** | **Data Table:** View all records with regex search, one-click shortcuts, sorting (by date/amount), and inline actions (edit, delete with confirmation). |
+| **add.html** | **Data Entry:** Add a new record featuring real-time, character-by-character input validation. |
+| **settings.html** | **Configuration:** Base currency, secondary currencies (with manual exchange rates), spending cap, category management, import/export JSON, and a factory reset option. |
+| **about.html** | **Documentation:** Application purpose, user guide, advanced search/regex tips, and contact information. |
+
 
 The currency dropdown in the navbar (filled by currency.js) works on every page. Amounts are always saved in the base currency; the dropdown only changes how they are displayed.
 
 Regex rules
 
+
 | Where | Rule | Pattern |
-|---|---|---|
+| :--- | :--- | :--- |
 | Add: description | No space at the start or end | `/^\S(?:.*\S)?$/` |
 | Add: description | **Back-reference:** same word twice in a row | `/\b(\w+)\s+\1\b/i` |
 | Add: amount | Up to 2 decimals, no sign or leading zeros | `/^(0\|[1-9]\d*)(\.\d{1,2})?$/` |
@@ -30,6 +33,7 @@ Regex rules
 | Settings: currency code | 3 capital letters | `/^[A-Z]{3}$/` |
 | Settings: exchange rate | **Lookahead:** above zero (blocks 0, 0.0, 000) | `/^(?!0+(?:\.0+)?$)\d+(?:\.\d{1,6})?$/` |
 | Settings: cap | Same as the amount rule, or blank for no cap | `/^(0\|[1-9]\d*)(\.\d{1,2})?$/` |
+
 
 Search shortcuts on Records: \.\d{2}\b (cents present), (coffee|tea), \b(\w+)\s+\1\b (repeated word). Search is case-insensitive. An invalid pattern shows an error instead of breaking the page.
 
