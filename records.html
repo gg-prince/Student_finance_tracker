@@ -9,6 +9,7 @@
 
     <link rel = "stylesheet" href = "base.css">
     <link rel = "stylesheet" href = "records.css">
+    <script src = "scripts/currency.js"></script>
 
 </head>
 
@@ -21,8 +22,8 @@
         <ul class = "nav-links">
             <li><a href = "index.html">Home</a></li>
             <li><a href = "records.html">Records</a></li>
-            <li><a href = "Add.html">Add</a></li>
-            <li><a href = "#">Settings</a></li>
+            <li><a href = "add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
             <li><a href = "#">About</a></li>
         </ul>
         <select class = "currency">
@@ -116,7 +117,7 @@
             <td>${record.date}</td>
             <td>${record.category}</td>
             <td>${record.description}</td>
-            <td>${record.amount}</td>
+            <td>${formatMoney(record.amount)}</td>
             <td class = "action-btns">
                 <button class = "btn-action btn-edit" data-id = "${record.id}">Edit</button>
                 <button class = "btn-action btn-delete" data-id = "${record.id}">Delete</button>
@@ -275,6 +276,9 @@
         loadRecords();
     });
 
+    function onCurrencyChange(){
+        handleSearchAndFilter();
+    }
 
 </script>
 

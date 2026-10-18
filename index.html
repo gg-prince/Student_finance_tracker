@@ -5,34 +5,31 @@
 
     <meta charset = "UTF-8">
     <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
-    <title>Finance Tracker</title>
+    <title>Dashboard | Finance Tracker</title>
 
     <link rel = "stylesheet" href = "base.css">
+    <link rel = "stylesheet" href = "dashbord.css">
+    <script src = "scripts/currency.js"></script>
 
 </head>
 
 <body>
 
     <!-- Main nav -->
-
     <nav class = "navbar">
         <span id = "menu-icon" class = "menu-icon">&#9776;</span>
         <h1 class = "logo">Traksta</h1>
         <ul class = "nav-links">
             <li><a href = "index.html">Home</a></li>
             <li><a href = "records.html">Records</a></li>
-            <li><a href = "Add.html">Add</a></li>
-            <li><a href = "#">Settings</a></li>
+            <li><a href = "add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
             <li><a href = "#">About</a></li>
         </ul>
-        <select class = "currency">
-            <option>USD</option>
-            <option>RWF</option>
-            <option>EUR</option>
-        </select>
+        <select class = "currency"></select>
     </nav>
 
-    <!-- Side nave for mobile -->
+    <!-- Side nav for mobile -->
 
     <nav class = "side-navbar">
         <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
@@ -41,10 +38,376 @@
             <li><a href = "index.html">Home</a></li>
             <li><a href = "records.html">Records</a></li>
             <li><a href = "Add.html">Add</a></li>
-            <li><a href = "#">Settings</a></li>
+            <li><a href = "settings.html">Settings</a></li>
             <li><a href = "#">About</a></li>
         </ul>
     </nav>
+
+
+
+    <section class = "dashboard-section">
+
+        <h1 class = "dashboard-title">Dashboard</h1>
+
+        <p id = "cap-polite" class = "sr-only" role = "status" aria-live = "polite" aria-atomic = "true"></p>
+        <p id = "cap-assertive" class = "sr-only" role = "alert" aria-live = "assertive" aria-atomic = "true"></p>
+
+        <div class = "cap" id = "cap">
+            <p class = "cap-label">Budget cap</p>
+            <p class = "cap-headline" id = "cap-headline">No cap set</p>
+            <div class = "cap-track" aria-hidden = "true"><div class = "cap-fill" id = "cap-fill"></div></div>
+            <p class = "cap-detail" id = "cap-detail">Set a cap in Settings to see how much you have left.</p>
+        </div>
+
+        <hr>
+
+        <h2>Summary</h2>
+        <div class = "stats">
+            <div class = "stat">
+                <p class = "stat-label">Records</p>
+                <p class = "stat-value" id = "stat-count">0</p>
+            </div>
+            <div class = "stat">
+                <p class = "stat-label">Total spent</p>
+                <p class = "stat-value" id = "stat-total">0</p>
+            </div>
+            <div class = "stat">
+                <p class = "stat-label">Top category</p>
+                <p class = "stat-value" id = "stat-top">None yet</p>
+                <p class = "stat-sub" id = "stat-top-sub"></p>
+            </div>
+            <div class = "stat">
+                <p class = "stat-label">Last 7 days</p>
+                <p class = "stat-value" id = "stat-week">0</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2 id = "trend-title">Spending in the last 7 days</h2>
+        <ol class = "trend" id = "trend" aria-labelledby = "trend-title"></ol>
+        <p class = "note" id = "trend-note"></p>
+
+        <hr>
+
+        <h2>Recent records</h2>
+        <div class = "empty-box" id = "empty-box" hidden>
+            <p><b>No records yet.</b> <a href = "Add.html">Add your first one</a> to see your numbers here.</p>
+        </div>
+        <table class = "recent-table" id = "recent-table">
+            <thead><tr>
+                <th class = "left-corner">Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th class = "right-corner">Amount</th>
+            </tr></thead>
+            <tbody id = "recent-body"></tbody>
+        </table>
+        <p class = "more-link" id = "more-link"><a href = "records.html">See all records</a></p>
+
+<script>
+
+    function getSettings(){
+        try{
+            const saved = JSON.parse(localStorage.getItem("settings"));
+            if(saved && saved.baseCurrency && saved.otherCurrencies && saved.categories){
+                return saved;
+            }
+        }catch(e){
+            console.error("Saved settings were unreadable, using defaults:", e);
+        }
+        return {
+            baseCurrency: "USD",
+            otherCurrencies: [{code: "EUR", rate: 0.92}, {code: "RWF", rate: 1450}],
+            displayCurrency: "USD",
+            cap: null,
+            categories: ["Food", "Books", "Transport", "Entertainment", "Fees", "Other"]
+        };
+    }
+
+    function isUsable(r){
+        return r !== null && typeof r === "object" &&
+            typeof r.date === "string" && typeof r.category === "string" && typeof r.description === "string" &&
+            r.amount !== "" && r.amount !== null && r.amount !== undefined && Number.isFinite(Number(r.amount));
+    }
+
+    function getRecords(){
+        try{
+            const list = JSON.parse(localStorage.getItem("records") || "[]");
+            return Array.isArray(list) ? list.filter(r => isUsable(r) && r.active !== false) : [];
+        }catch(e){
+            console.error("Saved records were unreadable:", e);
+            return [];
+        }
+    }
+
+    // ---------- Money ----------
+
+    function rateFor(settings, code){
+        if(code === settings.baseCurrency) return 1;
+        const other = settings.otherCurrencies.find(c => c.code === code);
+        return other ? other.rate : 1;
+    }
+
+    function money(amountBase, settings){
+        const code = settings.displayCurrency;
+        const value = amountBase * rateFor(settings, code);
+        try{
+            return new Intl.NumberFormat("en-US", {style: "currency", currency: code}).format(value).replace(/\u00a0/g, " ");
+        }catch(e){
+            return code + " " + value.toFixed(2);
+        }
+    }
+
+    function shortNumber(amountBase, settings){
+        const value = amountBase * rateFor(settings, settings.displayCurrency);
+        return new Intl.NumberFormat("en-US", {minimumFractionDigits: 0, maximumFractionDigits: 2}).format(value);
+    }
+
+    const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+
+
+    function localDate(date){
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return date.getFullYear() + "-" + month + "-" + day;
+    }
+
+    function calculate(records){
+        const total = round2(records.reduce((sum, r) => sum + Number(r.amount), 0));
+
+        const byCategory = {};
+        records.forEach(r => {
+            if(!byCategory[r.category]) byCategory[r.category] = {name: r.category, total: 0, count: 0};
+            byCategory[r.category].total = round2(byCategory[r.category].total + Number(r.amount));
+            byCategory[r.category].count += 1;
+        });
+        const top = Object.values(byCategory).sort((a, b) =>
+            b.total - a.total || b.count - a.count || a.name.localeCompare(b.name))[0] || null;
+
+        const days = [];
+        for(let i = 6; i >= 0; i--){
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            days.push({
+                date: localDate(d),
+                label: d.toLocaleDateString("en-US", {weekday: "short", day: "numeric"}),
+                longLabel: d.toLocaleDateString("en-US", {weekday: "long", month: "short", day: "numeric"}),
+                total: 0
+            });
+        }
+        records.forEach(r => {
+            const day = days.find(d => d.date === r.date);
+            if(day) day.total = round2(day.total + Number(r.amount));
+        });
+        const weekTotal = round2(days.reduce((sum, d) => sum + d.total, 0));
+
+        return {total, top, days, weekTotal};
+    }
+
+    function capStatus(total, cap){
+        if(cap === null || cap === undefined) return {state: "none"};
+        const left = round2(cap - total);
+        const percent = cap > 0 ? Math.min(100, (total / cap) * 100) : 100;
+        if(left > 0) return {state: "under", left, percent};
+        if(left === 0) return {state: "full", percent: 100};
+        return {state: "over", over: -left, percent: 100};
+    }
+
+    // Drawing the page
+
+    function renderCap(info, settings){
+        const box = document.getElementById("cap");
+        const status = capStatus(info.total, settings.cap);
+
+        box.classList.toggle("is-over", status.state === "over");
+        box.classList.toggle("is-full", status.state === "full");
+
+        const headline = document.getElementById("cap-headline");
+        const detail = document.getElementById("cap-detail");
+
+        if(status.state === "none"){
+            headline.textContent = "No cap set";
+            detail.textContent = "Set a cap in Settings to see how much you have left.";
+            document.getElementById("cap-fill").style.width = "0%";
+            return {text: "", urgent: false};
+        }
+
+        document.getElementById("cap-fill").style.width = status.percent + "%";
+        const capText = money(settings.cap, settings);
+
+        if(status.state === "under"){
+            headline.textContent = money(status.left, settings) + " left";
+            detail.textContent = "Spent " + money(info.total, settings) + " of your " + capText + " cap.";
+            return {text: "You have " + money(status.left, settings) + " left of your " + capText + " cap.", urgent: false};
+        }
+        if(status.state === "full"){
+            headline.textContent = "Cap fully used";
+            detail.textContent = "Spent " + money(info.total, settings) + " of your " + capText + " cap.";
+            return {text: "You have used all of your " + capText + " cap.", urgent: false};
+        }
+        headline.textContent = money(status.over, settings) + " over";
+        detail.textContent = "Spent " + money(info.total, settings) + " against a " + capText + " cap.";
+        return {text: "You are over your " + capText + " cap by " + money(status.over, settings) + ".", urgent: true};
+    }
+
+    function announceCap(message){
+        const polite = document.getElementById("cap-polite");
+        const assertive = document.getElementById("cap-assertive");
+        polite.textContent = "";
+        assertive.textContent = "";
+        if(message.text === "") return;
+        setTimeout(() => {
+            (message.urgent ? assertive : polite).textContent = message.text;
+        }, 30);
+    }
+
+    function renderStats(info, records, settings){
+        document.getElementById("stat-count").textContent = records.length;
+        document.getElementById("stat-total").textContent = money(info.total, settings);
+        document.getElementById("stat-week").textContent = money(info.weekTotal, settings);
+
+        if(info.top){
+            document.getElementById("stat-top").textContent = info.top.name;
+            document.getElementById("stat-top-sub").textContent =
+                money(info.top.total, settings) + " in " + info.top.count + (info.top.count === 1 ? " record" : " records");
+        }else{
+            document.getElementById("stat-top").textContent = "None yet";
+            document.getElementById("stat-top-sub").textContent = "";
+        }
+    }
+
+    function renderTrend(info, settings){
+        const list = document.getElementById("trend");
+        list.innerHTML = "";
+        const max = Math.max(0, ...info.days.map(d => d.total));
+
+        info.days.forEach(day => {
+            const percent = (max > 0 && day.total > 0) ? Math.max((day.total / max) * 100, 4) : 0;
+
+            const li = document.createElement("li");
+
+            const value = document.createElement("span");
+            value.className = "trend-value";
+            value.setAttribute("aria-hidden", "true");
+            value.textContent = day.total > 0 ? shortNumber(day.total, settings) : "0";
+
+            const well = document.createElement("span");
+            well.className = "trend-well";
+            well.setAttribute("aria-hidden", "true");
+            const bar = document.createElement("span");
+            bar.className = "trend-bar";
+            bar.style.height = percent + "%";
+            well.appendChild(bar);
+
+            const label = document.createElement("span");
+            label.className = "trend-label";
+            label.setAttribute("aria-hidden", "true");
+            label.textContent = day.label;
+
+            const spoken = document.createElement("span");
+            spoken.className = "sr-only";
+            spoken.textContent = day.longLabel + ": " + money(day.total, settings);
+
+            li.appendChild(value);
+            li.appendChild(well);
+            li.appendChild(label);
+            li.appendChild(spoken);
+            list.appendChild(li);
+        });
+
+        document.getElementById("trend-note").textContent =
+            "Daily spending in " + settings.displayCurrency + ". Today is on the right.";
+    }
+
+    function renderRecent(records, settings){
+        const body = document.getElementById("recent-body");
+        body.innerHTML = "";
+
+        const newest = [...records]
+            .sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+            .slice(0, 5);
+
+        newest.forEach(r => {
+            const tr = document.createElement("tr");
+            [r.date, r.category, r.description, money(Number(r.amount), settings)].forEach(text => {
+                const td = document.createElement("td");
+                td.textContent = text;
+                tr.appendChild(td);
+            });
+            body.appendChild(tr);
+        });
+
+        const empty = records.length === 0;
+        document.getElementById("empty-box").hidden = !empty;
+        document.getElementById("recent-table").hidden = empty;
+        document.getElementById("more-link").hidden = empty;
+    }
+
+    function renderAll(announce){
+        const settings = getSettings();
+        const records = getRecords();
+        const info = calculate(records);
+
+        fillCurrencyDropdown(settings);
+        renderStats(info, records, settings);
+        renderTrend(info, settings);
+        renderRecent(records, settings);
+
+        const message = renderCap(info, settings);
+        if(announce) announceCap(message);
+    }
+
+    // currency dropdown
+    function fillCurrencyDropdown(settings){
+        const select = document.querySelector(".currency");
+        select.innerHTML = "";
+        [settings.baseCurrency, settings.otherCurrencies[0].code, settings.otherCurrencies[1].code].forEach(code => {
+            const option = document.createElement("option");
+            option.value = code;
+            option.textContent = code;
+            select.appendChild(option);
+        });
+        select.value = settings.displayCurrency;
+    }
+
+    //Start
+
+    function loadSampleIfFirstVisit(){
+        if(localStorage.getItem("records") !== null) return Promise.resolve();
+
+        return fetch("seed.json")
+            .then(response => {
+                if(!response.ok) throw new Error("seed.json: HTTP " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                const list = Array.isArray(data) ? data : data.records;
+                const records = list.map(record => ({
+                    ...record,
+                    active: record.active !== undefined ? record.active : true
+                }));
+                localStorage.setItem("records", JSON.stringify(records));
+            })
+            .catch(error => {
+                console.error("Could not load the sample data:", error);
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelector(".currency").addEventListener("change", event => {
+            const settings = getSettings();
+            settings.displayCurrency = event.target.value;
+            localStorage.setItem("settings", JSON.stringify(settings));
+            renderAll(true);
+        });
+
+        loadSampleIfFirstVisit().then(() => renderAll(true));
+    });
+</script>
+
+    </section>
+
 
 </body>
 
@@ -66,3 +429,4 @@
 </script>
 
 </html>
+

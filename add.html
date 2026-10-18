@@ -1,0 +1,434 @@
+<!Doctype html>
+<html lang = "en">
+
+<head>
+
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>Add a record | Finance Tracker</title>
+
+    <link rel = "stylesheet" href = "base.css">
+    <link rel = "stylesheet" href = "add.css">
+    <script scr = "scripts/currency.js"></script>
+
+</head>
+
+<body>
+
+    <!-- Main nav -->
+    <nav class = "navbar">
+        <span id = "menu-icon" class = "menu-icon">&#9776;</span>
+        <h1 class = "logo">Traksta</h1>
+        <ul class = "nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+        <select class = "currency"></select>
+    </nav>
+
+    <!-- Side nav for mobile -->
+
+    <nav class = "side-navbar">
+        <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
+        <h1 class = "side-logo">Traksta</h1></div>
+        <ul class = "side-nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "Add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
+            <li><a href = "#">About</a></li>
+        </ul>
+    </nav>
+
+
+
+    <section class = "add-section">
+
+        <h1 class = "add-title">Add a record</h1>
+
+        <p class = "note">To change or remove a record you already saved, use Edit or Delete on the Records page.</p>
+
+        <!-- Messages: saved, errors, cap warning -->
+        <p id = "add-msg" role = "status"></p>
+
+        <form id = "add-form" novalidate>
+
+            <div class = "field">
+                <label for = "description">Description</label>
+                <input type = "text" id = "description" autocomplete = "off" aria-describedby = "description-hint description-error">
+                <p class = "hint" id = "description-hint">No spaces at the start or end, and no repeated words.</p>
+                <p class = "error" id = "description-error"></p>
+            </div>
+
+            <div class = "field">
+                <label for = "amount">Amount (<span id = "base-code">USD</span>)</label>
+                <input type = "text" id = "amount" inputmode = "decimal" autocomplete = "off" aria-describedby = "amount-hint amount-error">
+                <p class = "hint" id = "amount-hint">Digits with up to 2 decimals, like 12.50.</p>
+                <p class = "error" id = "amount-error"></p>
+            </div>
+
+            <div class = "field">
+                <label for = "category">Category</label>
+                <input type = "text" id = "category" list = "category-list" autocomplete = "off" aria-describedby = "category-hint category-error">
+                <datalist id = "category-list"></datalist>
+                <p class = "hint" id = "category-hint">Pick one or type a new one (letters, spaces or hyphens).</p>
+                <p class = "error" id = "category-error"></p>
+            </div>
+
+            <div class = "field">
+                <label for = "date">Date</label>
+                <div class = "date-row">
+                    <input type = "text" id = "date" inputmode = "numeric" placeholder = "YYYY-MM-DD" autocomplete = "off" aria-describedby = "date-hint date-error">
+                    <button type = "button" id = "today-btn" class = "btn-secondary">Today</button>
+                </div>
+                <p class = "hint" id = "date-hint">Format YYYY-MM-DD, like 2025-09-29.</p>
+                <p class = "error" id = "date-error"></p>
+            </div>
+
+            <div class = "button-row">
+                <button type = "submit" class = "btn-primary">Add record</button>
+                <button type = "reset" class = "btn-secondary">Clear</button>
+            </div>
+
+        </form>
+
+<script>
+    // ---------- Rules (regex) ----------
+    const DESC_RULE = /^\S(?:.*\S)?$/;                           // no space at the start or end
+    const REPEAT_RULE = /\b(\w+)\s+\1\b/i;                       // back-reference: the same word twice in a row ("the the")
+    const AMOUNT_RULE = /^(0|[1-9]\d*)(\.\d{1,2})?$/;            // 12 or 12.50, no minus, no leading zeros
+    const DATE_RULE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+    const CATEGORY_RULE = /^[A-Za-z]+(?:[ -][A-Za-z]+)*$/;       // letters, single spaces or hyphens
+
+    const DEFAULT_CATEGORIES = ["Food", "Books", "Transport", "Entertainment", "Fees", "Other"];
+    const FIELDS = ["description", "amount", "category", "date"];
+
+    // ---------- Reading what the other pages saved ----------
+
+    function getSettings(){
+        try{
+            const saved = JSON.parse(localStorage.getItem("settings"));
+            if(saved && saved.baseCurrency && saved.otherCurrencies && saved.categories){
+                return saved;
+            }
+        }catch(e){
+            console.error("Saved settings were unreadable, using defaults:", e);
+        }
+        return {
+            baseCurrency: "USD",
+            otherCurrencies: [{code: "EUR", rate: 0.92}, {code: "RWF", rate: 1450}],
+            displayCurrency: "USD",
+            cap: null,
+            categories: [...DEFAULT_CATEGORIES]
+        };
+    }
+
+    function getRecords(){
+        try{
+            const list = JSON.parse(localStorage.getItem("records") || "[]");
+            return Array.isArray(list) ? list : [];
+        }catch(e){
+            return [];
+        }
+    }
+
+    // ---------- Small helpers ----------
+
+    function todayText(){
+        const d = new Date();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return d.getFullYear() + "-" + month + "-" + day;
+    }
+
+    // "2025-02-30" matches the pattern but is not a real day, so check that too
+    function isRealDate(text){
+        const [y, m, d] = text.split("-").map(Number);
+        const date = new Date(y, m - 1, d);
+        return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+    }
+
+    // rec_0001, rec_0002... Deleted records are still in storage (active: false),
+    // so count them too, otherwise a new record could reuse an old id.
+    function nextId(records){
+        let highest = 0;
+        records.forEach(r => {
+            const match = /^rec_(\d+)$/.exec(r.id);
+            if(match) highest = Math.max(highest, Number(match[1]));
+        });
+        return "rec_" + String(highest + 1).padStart(4, "0");
+    }
+
+    function showMessage(html, type = "ok"){
+        const box = document.getElementById("add-msg");
+        box.innerHTML = "";
+        if(typeof html === "string"){
+            box.textContent = html;
+        }else{
+            box.appendChild(html);
+        }
+        box.classList.toggle("is-error", type === "error");
+        box.classList.toggle("is-warning", type === "warning");
+    }
+
+    function setError(name, text){
+        document.getElementById(name + "-error").textContent = text;
+        const input = document.getElementById(name);
+        input.style.borderColor = text ? "red" : "black";
+        if(text){
+            input.setAttribute("aria-invalid", "true");
+        }else{
+            input.removeAttribute("aria-invalid");
+        }
+    }
+
+    // ---------- Checking each field ----------
+    // Each one returns { value, error }
+
+    function checkDescription(raw){
+        const value = raw.replace(/\s{2,}/g, " ");            // collapse double spaces first
+        if(value.trim() === "") return {value, error: "Enter a description, like Lunch at cafeteria."};
+        if(/[<>]/.test(value)) return {value, error: "Please leave out the < and > characters."};
+        if(!DESC_RULE.test(value)) return {value, error: "Remove the space at the start or end."};
+        if(value.length > 80) return {value, error: "Keep it to 80 characters or fewer."};
+        const repeat = REPEAT_RULE.exec(value);
+        if(repeat) return {value, error: "The word \"" + repeat[1] + "\" appears twice in a row. Remove one."};
+        return {value, error: ""};
+    }
+
+    function checkAmount(raw){
+        const value = raw.trim();
+        if(value === "") return {value, error: "Enter an amount, like 12.50."};
+        if(!AMOUNT_RULE.test(value)) return {value, error: "Use digits with up to 2 decimals (no commas, minus sign or leading zeros)."};
+        if(Number(value) > 1000000000) return {value, error: "That amount is too large."};
+        return {value: Number(value), error: ""};
+    }
+
+    function checkCategory(raw){
+        const value = raw.replace(/\s{2,}/g, " ");
+        if(value === "") return {value, error: "Enter a category, like Food."};
+        if(!CATEGORY_RULE.test(value)) return {value, error: "Use letters only, with single spaces or hyphens between words."};
+        if(value.length > 30) return {value, error: "Keep it to 30 characters or fewer."};
+        return {value, error: ""};
+    }
+
+    function checkDate(raw){
+        const value = raw.trim();
+        if(value === "") return {value, error: "Enter a date as YYYY-MM-DD."};
+        if(!DATE_RULE.test(value)) return {value, error: "Use the format YYYY-MM-DD, like 2025-09-29."};
+        if(!isRealDate(value)) return {value, error: value + " is not a real calendar date."};
+        return {value, error: ""};
+    }
+
+    const CHECKS = {
+        description: checkDescription,
+        amount: checkAmount,
+        category: checkCategory,
+        date: checkDate
+    };
+
+    // ---------- Filling the page from settings ----------
+
+    function fillPage(){
+        const settings = getSettings();
+
+        document.getElementById("base-code").textContent = settings.baseCurrency;
+
+        // category suggestions
+        const list = document.getElementById("category-list");
+        list.innerHTML = "";
+        settings.categories.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            list.appendChild(option);
+        });
+
+        // navbar currency dropdown
+        const select = document.querySelector(".currency");
+        select.innerHTML = "";
+        [settings.baseCurrency, settings.otherCurrencies[0].code, settings.otherCurrencies[1].code].forEach(code => {
+            const option = document.createElement("option");
+            option.value = code;
+            option.textContent = code;
+            select.appendChild(option);
+        });
+        select.value = settings.displayCurrency;
+    }
+
+    // ---------- Saving ----------
+
+    function handleSubmit(event){
+        event.preventDefault();
+
+        const results = {};
+        let firstBad = null;
+
+        FIELDS.forEach(name => {
+            results[name] = CHECKS[name](document.getElementById(name).value);
+            setError(name, results[name].error);
+            if(results[name].error && !firstBad) firstBad = name;
+        });
+
+        if(firstBad){
+            document.getElementById(firstBad).focus();
+            showMessage("Fix the red fields and try again.", "error");
+            return;
+        }
+
+        const settings = getSettings();
+        const records = getRecords();
+
+        // reuse the capital letters of a category that already exists ("food" becomes "Food")
+        let category = results.category.value;
+        const existing = settings.categories.find(c => c.toLowerCase() === category.toLowerCase());
+        if(existing){
+            category = existing;
+        }else{
+            settings.categories.push(category);               // a new category is remembered
+            localStorage.setItem("settings", JSON.stringify(settings));
+        }
+
+        const now = new Date().toISOString();
+        const record = {
+            id: nextId(records),
+            description: results.description.value,
+            amount: results.amount.value,
+            category: category,
+            date: results.date.value,
+            createdAt: now,
+            updatedAt: now,
+            active: true
+        };
+
+        records.push(record);
+
+        try{
+            localStorage.setItem("records", JSON.stringify(records));
+        }catch(e){
+            showMessage("This record could not be saved. Browser storage may be full or blocked.", "error");
+            return;
+        }
+
+        document.getElementById("add-form").reset();          // the reset handler puts today's date back
+        fillPage();
+        document.getElementById("description").focus();
+
+        showSavedMessage(record, settings, records);
+    }
+
+    // "Added ... You have $X left of your cap" (or a warning when over it)
+    function showSavedMessage(record, settings, records){
+        const wrap = document.createElement("span");
+        wrap.appendChild(document.createTextNode("Added \"" + record.description + "\". "));
+
+        let type = "ok";
+        if(settings.cap !== null && settings.cap !== undefined){
+            const total = records
+                .filter(r => r.active !== false)
+                .reduce((sum, r) => sum + Number(r.amount), 0);
+            const left = Math.round((settings.cap - total) * 100) / 100;
+
+            if(left > 0){
+                wrap.appendChild(document.createTextNode("You have " + left.toFixed(2) + " " + settings.baseCurrency + " left under your cap. "));
+            }else if(left === 0){
+                wrap.appendChild(document.createTextNode("You have used your whole cap. "));
+                type = "warning";
+            }else{
+                wrap.appendChild(document.createTextNode("You are over your cap by " + (-left).toFixed(2) + " " + settings.baseCurrency + ". "));
+                type = "error";
+            }
+        }
+
+        const link = document.createElement("a");
+        link.href = "records.html";
+        link.textContent = "See your records";
+        wrap.appendChild(link);
+
+        showMessage(wrap, type);
+    }
+
+    // ---------- Start ----------
+
+    document.addEventListener("DOMContentLoaded", () => {
+        fillPage();
+
+        const form = document.getElementById("add-form");
+        const touched = new Set();
+
+        document.getElementById("date").value = todayText();
+
+        FIELDS.forEach(name => {
+            const input = document.getElementById(name);
+
+            // check when the person leaves the field, then keep checking as they fix it
+            input.addEventListener("blur", () => {
+                if(name === "description" || name === "category"){
+                    input.value = input.value.replace(/\s{2,}/g, " ");
+                }
+                if(input.value !== "" || touched.has(name)){
+                    touched.add(name);
+                    setError(name, CHECKS[name](input.value).error);
+                }
+            });
+
+            input.addEventListener("input", () => {
+                const live = name === "description" && input.value !== "";   // description reacts immediately
+                if(live || touched.has(name) || input.hasAttribute("aria-invalid")){
+                    setError(name, CHECKS[name](input.value).error);
+                }
+            });
+        });
+
+        document.getElementById("today-btn").addEventListener("click", () => {
+            document.getElementById("date").value = todayText();
+            setError("date", "");
+            document.getElementById("date").focus();
+        });
+
+        form.addEventListener("submit", handleSubmit);
+
+        // Clear button: wipe the errors and put today's date back
+        form.addEventListener("reset", () => {
+            touched.clear();
+            FIELDS.forEach(name => setError(name, ""));
+            showMessage("");
+            setTimeout(() => {
+                document.getElementById("date").value = todayText();
+            }, 0);
+        });
+
+        // changing the navbar currency is remembered
+        document.querySelector(".currency").addEventListener("change", event => {
+            const settings = getSettings();
+            settings.displayCurrency = event.target.value;
+            localStorage.setItem("settings", JSON.stringify(settings));
+        });
+    });
+</script>
+
+    </section>
+
+
+</body>
+
+<script>
+    const menuIcon = document.getElementById("menu-icon");
+    const sideMenuIcon = document.getElementById("side-menu-icon");
+    const sideNavbar = document.querySelector(".side-navbar");
+
+    function openSideNavbar() {
+        sideNavbar.classList.add('open');
+    }
+
+    function closeSideNavbar() {
+        sideNavbar.classList.remove('open');
+    }
+
+    menuIcon.addEventListener("click", openSideNavbar);
+    sideMenuIcon.addEventListener("click", closeSideNavbar);
+</script>
+
+</html>
