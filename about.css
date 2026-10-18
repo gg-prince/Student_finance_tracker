@@ -70,14 +70,9 @@
     border-radius: 5px;
 }
 
-.contact li:nth-child(odd){
-    background-color: rgb(242, 251, 255);
-}
-
 .contact span{
     display: inline-block;
     min-width: 70px;
-    color: gray;
     font-size: 14px;
 }
 
