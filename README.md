@@ -1,5 +1,5 @@
 Traksta: student finance tracker
-Video for walk through: https://youtu.be/Wxl0KYd4WH0
+```Video for walk through: https://youtu.be/Wxl0KYd4WH0```
 
 Traksta lets a student log purchases, search them with regular expressions, and stay under a spending cap. It is plain HTML, CSS and JavaScript with no frameworks. There is no server or account: records and settings are saved in the browser with `localStorage`.
 
@@ -72,4 +72,3 @@ Files
 index.html  dashboard.css     records.html  records.css     add.html  add.css  about.html about.css  seed.json  currency.js
 settings.html  settings.css   about.html  about.css         base.css (navbar)
 currency.js (shared currency dropdown)     seed.json (sample records)
-```
