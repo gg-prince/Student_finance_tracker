@@ -1,4 +1,5 @@
 ## Video for walk through: https://youtu.be/Wxl0KYd4WH0
+## Link to website: https://gg-prince.github.io/Student_finance_tracker/index.html
 
 Traksta: student finance tracker
 
