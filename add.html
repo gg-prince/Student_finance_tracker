@@ -51,7 +51,7 @@
 
         <p class = "note">To change or remove a record you already saved, use Edit or Delete on the Records page.</p>
 
-        <!-- Messages: saved, errors, cap warning -->
+        <!-- Messages -->
         <p id = "add-msg" role = "status"></p>
 
         <form id = "add-form" novalidate>
@@ -96,17 +96,16 @@
         </form>
 
 <script>
-    // ---------- Rules (regex) ----------
-    const DESC_RULE = /^\S(?:.*\S)?$/;                           // no space at the start or end
-    const REPEAT_RULE = /\b(\w+)\s+\1\b/i;                       // back-reference: the same word twice in a row ("the the")
-    const AMOUNT_RULE = /^(0|[1-9]\d*)(\.\d{1,2})?$/;            // 12 or 12.50, no minus, no leading zeros
+    const DESC_RULE = /^\S(?:.*\S)?$/;
+    const REPEAT_RULE = /\b(\w+)\s+\1\b/i;
+    const AMOUNT_RULE = /^(0|[1-9]\d*)(\.\d{1,2})?$/;
     const DATE_RULE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-    const CATEGORY_RULE = /^[A-Za-z]+(?:[ -][A-Za-z]+)*$/;       // letters, single spaces or hyphens
+    const CATEGORY_RULE = /^[A-Za-z]+(?:[ -][A-Za-z]+)*$/;
 
     const DEFAULT_CATEGORIES = ["Food", "Books", "Transport", "Entertainment", "Fees", "Other"];
     const FIELDS = ["description", "amount", "category", "date"];
 
-    // ---------- Reading what the other pages saved ----------
+    //Reading what the other pages saved
 
     function getSettings(){
         try{
@@ -135,8 +134,6 @@
         }
     }
 
-    // ---------- Small helpers ----------
-
     function todayText(){
         const d = new Date();
         const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -144,15 +141,12 @@
         return d.getFullYear() + "-" + month + "-" + day;
     }
 
-    // "2025-02-30" matches the pattern but is not a real day, so check that too
     function isRealDate(text){
         const [y, m, d] = text.split("-").map(Number);
         const date = new Date(y, m - 1, d);
         return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
     }
 
-    // rec_0001, rec_0002... Deleted records are still in storage (active: false),
-    // so count them too, otherwise a new record could reuse an old id.
     function nextId(records){
         let highest = 0;
         records.forEach(r => {
@@ -184,9 +178,6 @@
             input.removeAttribute("aria-invalid");
         }
     }
-
-    // ---------- Checking each field ----------
-    // Each one returns { value, error }
 
     function checkDescription(raw){
         const value = raw.replace(/\s{2,}/g, " ");            // collapse double spaces first
@@ -230,8 +221,6 @@
         date: checkDate
     };
 
-    // ---------- Filling the page from settings ----------
-
     function fillPage(){
         const settings = getSettings();
 
@@ -258,7 +247,7 @@
         select.value = settings.displayCurrency;
     }
 
-    // ---------- Saving ----------
+    //Saving
 
     function handleSubmit(event){
         event.preventDefault();
@@ -281,13 +270,12 @@
         const settings = getSettings();
         const records = getRecords();
 
-        // reuse the capital letters of a category that already exists ("food" becomes "Food")
         let category = results.category.value;
         const existing = settings.categories.find(c => c.toLowerCase() === category.toLowerCase());
         if(existing){
             category = existing;
         }else{
-            settings.categories.push(category);               // a new category is remembered
+            settings.categories.push(category);
             localStorage.setItem("settings", JSON.stringify(settings));
         }
 
@@ -312,14 +300,13 @@
             return;
         }
 
-        document.getElementById("add-form").reset();          // the reset handler puts today's date back
+        document.getElementById("add-form").reset();
         fillPage();
         document.getElementById("description").focus();
 
         showSavedMessage(record, settings, records);
     }
 
-    // "Added ... You have $X left of your cap" (or a warning when over it)
     function showSavedMessage(record, settings, records){
         const wrap = document.createElement("span");
         wrap.appendChild(document.createTextNode("Added \"" + record.description + "\". "));
@@ -350,7 +337,7 @@
         showMessage(wrap, type);
     }
 
-    // ---------- Start ----------
+    //Start
 
     document.addEventListener("DOMContentLoaded", () => {
         fillPage();
@@ -363,7 +350,6 @@
         FIELDS.forEach(name => {
             const input = document.getElementById(name);
 
-            // check when the person leaves the field, then keep checking as they fix it
             input.addEventListener("blur", () => {
                 if(name === "description" || name === "category"){
                     input.value = input.value.replace(/\s{2,}/g, " ");
@@ -375,7 +361,7 @@
             });
 
             input.addEventListener("input", () => {
-                const live = name === "description" && input.value !== "";   // description reacts immediately
+                const live = name === "description" && input.value !== "";
                 if(live || touched.has(name) || input.hasAttribute("aria-invalid")){
                     setError(name, CHECKS[name](input.value).error);
                 }
@@ -390,7 +376,6 @@
 
         form.addEventListener("submit", handleSubmit);
 
-        // Clear button: wipe the errors and put today's date back
         form.addEventListener("reset", () => {
             touched.clear();
             FIELDS.forEach(name => setError(name, ""));
@@ -400,7 +385,6 @@
             }, 0);
         });
 
-        // changing the navbar currency is remembered
         document.querySelector(".currency").addEventListener("change", event => {
             const settings = getSettings();
             settings.displayCurrency = event.target.value;

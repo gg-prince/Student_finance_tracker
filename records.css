@@ -44,10 +44,12 @@
     margin: 0 0;
     border: none;
     border-radius: 5px;
-    background-color: green;
     color: white;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+}
+.add-record{
+    background-color: #006CA5;
 }
 .search button:hover{
     width: 97px;
