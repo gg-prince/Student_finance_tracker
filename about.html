@@ -1,0 +1,112 @@
+<!Doctype html>
+<html lang = "en">
+
+<head>
+
+    <meta charset = "UTF-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <title>About | Finance Tracker</title>
+
+    <link rel = "stylesheet" href = "base.css">
+    <link rel = "stylesheet" href = "about.css">
+
+    <script src = "currency.js"></script>
+
+</head>
+
+<body>
+
+    <nav class = "navbar">
+        <span id = "menu-icon" class = "menu-icon">&#9776;</span>
+        <h1 class = "logo">Traksta</h1>
+        <ul class = "nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "Add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
+            <li><a href = "about.html">About</a></li>
+        </ul>
+        <select class = "currency">
+            <ul>
+                <option>USD</option>
+                <option>Rwf</option>
+                <option>EUR</option>
+            </ul>
+        </select>
+    </nav>
+
+    <!-- Side nav for mobile -->
+
+    <nav class = "side-navbar">
+        <div><span id = "side-menu-icon" class = "side-menu-icon">&#9776;</span>
+        <h1 class = "side-logo">Traksta</h1></div>
+        <ul class = "side-nav-links">
+            <li><a href = "index.html">Home</a></li>
+            <li><a href = "records.html">Records</a></li>
+            <li><a href = "Add.html">Add</a></li>
+            <li><a href = "settings.html">Settings</a></li>
+            <li><a href = "about.html">About</a></li>
+        </ul>
+    </nav>
+
+
+
+    <section class = "about-section">
+
+        <h1 class = "about-title">About Traksta</h1>
+
+        <h2>Why it exists</h2>
+        <div class = "about-block">
+            <p>Traksta helps students see where their money goes. Write down each purchase (lunch, a textbook, a bus pass), and Traksta adds it all up, shows your biggest spending category, charts the last seven days, and tells you how much of your budget is left.</p>
+        </div>
+
+        <hr>
+
+        <h2>How to use it</h2>
+        <div class = "about-block">
+            <ol>
+                <li>Open <a href = "settings.html">Settings</a> and set a spending cap, and your currencies if you need something other than the defaults.</li>
+                <li>Add each purchase on the <a href = "add.html">Add</a> page. The form tells you right away if something is wrong, like an impossible date or an amount with three decimals.</li>
+                <li>Check the <a href = "index.html">Home</a> dashboard to see your total, your top category, the last seven days, and what is left under your cap.</li>
+                <li>Use <a href = "records.html">Records</a> to search, sort, edit or delete anything you entered.</li>
+            </ol>
+        </div>
+
+        <hr>
+
+        <h2>Contact</h2>
+        <div class = "about-block">
+            <p>Questions, bugs or ideas? Get in touch:</p>
+            <ul class = "contact">
+                <li><span>GitHub</span> <a href = "https://github.com/gg-prince/Student_finance_tracker">Traksta</a></li>
+                <li><span>Email</span> <a href = "mailto:g.prince@alustudent">g.prince@alustudent</a></li>
+            </ul>
+        </div>
+
+        <div class = "about-block">
+            <a href = "add.html" class = "cta">Add records</a>
+        </div>
+
+    </section>
+
+
+</body>
+
+<script>
+    const menuIcon = document.getElementById("menu-icon");
+    const sideMenuIcon = document.getElementById("side-menu-icon");
+    const sideNavbar = document.querySelector(".side-navbar");
+
+    function openSideNavbar() {
+        sideNavbar.classList.add('open');
+    }
+
+    function closeSideNavbar() {
+        sideNavbar.classList.remove('open');
+    }
+
+    menuIcon.addEventListener("click", openSideNavbar);
+    sideMenuIcon.addEventListener("click", closeSideNavbar);
+</script>
+
+</html>

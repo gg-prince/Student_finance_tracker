@@ -1,0 +1,134 @@
+.about-section{
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    width: 80%;
+    height: 100%;
+}
+
+.about-section h1{
+    font-size: 28px;
+    margin: 20px 0;
+}
+
+.about-section h2{
+    font-size: 20px;
+    margin: 10px 20px;
+}
+
+.about-block{
+    max-width: 700px;
+    margin: 0 20px 10px 20px;
+    line-height: 1.6;
+}
+
+.about-block p{
+    margin-bottom: 10px;
+}
+
+.about-block ul, .about-block ol{
+    margin: 0 0 10px 20px;
+}
+
+.about-block li{
+    margin-bottom: 6px;
+}
+
+.about-block .examples{
+    list-style: none;
+    margin: 0 0 10px 0;
+}
+
+.examples li{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px 12px;
+    padding: 10px 12px;
+    border-radius: 5px;
+}
+
+.examples li:nth-child(odd){
+    background-color: rgb(242, 251, 255);
+}
+
+.examples code{
+    padding: 3px 8px;
+    border-radius: 5px;
+    background-color: lightgray;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.about-block .contact{
+    list-style: none;
+    margin: 0;
+}
+
+.contact li{
+    padding: 10px 12px;
+    border-radius: 5px;
+}
+
+.contact li:nth-child(odd){
+    background-color: rgb(242, 251, 255);
+}
+
+.contact span{
+    display: inline-block;
+    min-width: 70px;
+    color: gray;
+    font-size: 14px;
+}
+
+.about-section a{
+    color: green;
+}
+
+.about-section a:hover{
+    color: darkgreen;
+}
+
+.about-section a:focus-visible{
+    outline: 3px solid #0b57d0;
+    outline-offset: 2px;
+}
+
+.cta{
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    background-color: green;
+    color: white !important;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.cta:hover{
+    background-color: darkgreen;
+}
+
+@media screen and (max-width: 827px){
+    .about-section h1{
+        font-size: 18px;
+    }
+    .about-section h2{
+        font-size: 16px;
+    }
+}
+
+@media screen and (max-width: 525px){
+    .about-section{
+        width: 100%;
+    }
+    .about-section h1{
+        font-size: 16px;
+    }
+    .about-section h2, .about-block{
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .contact span{
+        display: block;
+    }
+}
