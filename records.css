@@ -48,6 +48,10 @@
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
+.search button a{
+    text-decoration: none;
+    color: white;
+}
 .add-record{
     background-color: #006CA5;
 }
